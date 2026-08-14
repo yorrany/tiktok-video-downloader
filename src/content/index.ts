@@ -62,23 +62,43 @@ function triggerDownload(url: string, filename: string) {
   });
 }
 
-function extractVideoUrl(container: HTMLElement): string {
-  // Look for status/video link in container
-  const link = container.querySelector('a[href*="/video/"]') as HTMLAnchorElement | null;
+function extractVideoUrl(container: HTMLElement): string | null {
+  // Check direct video / photo link inside container or its parent feed item
+  const parent = container.closest('[data-e2e="feed-item"], [data-e2e="recommend-list-item-container"], div[class*="DivItemContainer"], [data-e2e="browse-video-container"], section, article') || container;
+  
+  const link = parent.querySelector('a[href*="/video/"], a[href*="/photo/"]') as HTMLAnchorElement | null;
   if (link && link.href) {
     return link.href;
   }
-  // Check current page url if in modal/detail
-  if (window.location.href.includes('/video/')) {
+
+  // Check author link + video id in attributes
+  const authorLink = parent.querySelector('a[href*="/@"]') as HTMLAnchorElement | null;
+  const videoId = parent.getAttribute('data-id') || parent.id || '';
+  if (authorLink && videoId && /^\d+$/.test(videoId)) {
+    const username = authorLink.href.split('/@')[1]?.split('/')[0]?.split('?')[0];
+    if (username) {
+      return `https://www.tiktok.com/@${username}/video/${videoId}`;
+    }
+  }
+
+  // If on a status/video page
+  if (window.location.href.includes('/video/') || window.location.href.includes('/photo/')) {
     return window.location.href;
   }
-  return window.location.href;
+
+  return null;
 }
 
-function showDownloadMenu(parent: HTMLElement, videoUrl: string, btn: HTMLElement) {
+function showDownloadMenu(parent: HTMLElement, container: HTMLElement, btn: HTMLElement) {
   const existing = parent.querySelector('.tikflow-menu');
   if (existing) {
     existing.remove();
+    return;
+  }
+
+  const videoUrl = extractVideoUrl(container);
+  if (!videoUrl) {
+    showToast('Não foi possível identificar o link deste vídeo.');
     return;
   }
 
@@ -94,7 +114,7 @@ function showDownloadMenu(parent: HTMLElement, videoUrl: string, btn: HTMLElemen
     btn.innerHTML = originalSvg;
 
     if (!res || !res.success || !res.data) {
-      showToast(res?.error || 'Erro ao obter dados do vídeo.');
+      showToast(res?.error || 'Erro ao obter vídeo sem marca d\'água.');
       return;
     }
 
@@ -164,8 +184,6 @@ function processFeedItem(feedItem: HTMLElement) {
     return;
   }
 
-  const videoUrl = extractVideoUrl(feedItem);
-
   const wrapper = document.createElement('div');
   wrapper.className = 'tikflow-btn-wrapper';
 
@@ -186,7 +204,7 @@ function processFeedItem(feedItem: HTMLElement) {
   wrapper.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
-    showDownloadMenu(wrapper, videoUrl, btn);
+    showDownloadMenu(wrapper, feedItem, btn);
   });
 
   actionContainer.appendChild(wrapper);
@@ -207,8 +225,7 @@ function processVideoPlayer(player: HTMLElement) {
   floatingBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
-    const videoUrl = extractVideoUrl(player.closest('[data-e2e="feed-item"], section, article') as HTMLElement || player);
-    showDownloadMenu(player, videoUrl, floatingBtn);
+    showDownloadMenu(player, player, floatingBtn);
   });
 
   const pos = window.getComputedStyle(player).position;

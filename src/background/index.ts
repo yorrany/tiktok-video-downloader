@@ -14,7 +14,15 @@ export interface TikTokMediaData {
 
 // Fetch TikTok video metadata without watermark
 export async function fetchTikTokData(videoUrl: string): Promise<TikTokMediaData> {
-	// Clean URL (remove query params for API)
+	if (!videoUrl || (!videoUrl.includes('tiktok.com') && !videoUrl.includes('douyin.com'))) {
+		throw new Error('Por favor, forneça um link válido do TikTok.');
+	}
+
+	// If URL is just home/foryou without specific video
+	if ((videoUrl.endsWith('/foryou') || videoUrl.endsWith('tiktok.com/') || videoUrl.endsWith('/explore')) && !videoUrl.includes('/video/') && !videoUrl.includes('/photo/')) {
+		throw new Error('Abra um vídeo específico ou use o botão "Baixar" no post.');
+	}
+
 	const cleanUrl = videoUrl.split('?')[0];
 
 	// Try TikWM API
@@ -28,12 +36,16 @@ export async function fetchTikTokData(videoUrl: string): Promise<TikTokMediaData
 	});
 
 	if (!response.ok) {
-		throw new Error(`Erro na API do TikTok: status ${response.status}`);
+		throw new Error(`Erro na comunicação com a API (Status ${response.status}).`);
 	}
 
 	const json = await response.json();
 	if (json.code !== 0 || !json.data) {
-		throw new Error(json.msg || 'Não foi possível obter o vídeo sem marca d\'água.');
+		const msg = json.msg || '';
+		if (msg.includes('Url parsing is failed') || msg.includes('check url')) {
+			throw new Error('Link do vídeo não identificado. Clique no botão "Baixar" diretamente no vídeo do TikTok.');
+		}
+		throw new Error(msg || 'Não foi possível extrair o vídeo sem marca d\'água.');
 	}
 
 	const d = json.data;
@@ -76,7 +88,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				}
 			});
 		} else {
-			sendResponse({ success: false, error: 'Downloads API unavailable' });
+			sendResponse({ success: false, error: 'Downloads API indisponível' });
 		}
 		return true; // async
 	}
@@ -84,16 +96,56 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.type === 'GET_CURRENT_TAB_TIKTOK') {
 		chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
 			const activeTab = tabs[0];
-			if (!activeTab || !activeTab.url || !activeTab.url.includes('tiktok.com')) {
-				sendResponse({ success: false, error: 'Abra um vídeo no TikTok primeiro.' });
+			if (!activeTab || !activeTab.id || !activeTab.url || !activeTab.url.includes('tiktok.com')) {
+				sendResponse({ success: false, error: 'Nenhuma aba ativa do TikTok encontrada.' });
 				return;
 			}
 
+			// If tab URL already is a direct video/photo page
+			if (activeTab.url.includes('/video/') || activeTab.url.includes('/photo/') || activeTab.url.includes('/t/')) {
+				try {
+					const data = await fetchTikTokData(activeTab.url);
+					sendResponse({ success: true, data, tabUrl: activeTab.url });
+				} catch (e: any) {
+					sendResponse({ success: false, error: e.message, tabUrl: activeTab.url });
+				}
+				return;
+			}
+
+			// If tab is on feed, find the currently visible video URL on the page
 			try {
-				const data = await fetchTikTokData(activeTab.url);
-				sendResponse({ success: true, data, tabUrl: activeTab.url });
+				const results = await chrome.scripting.executeScript({
+					target: { tabId: activeTab.id },
+					func: () => {
+						try {
+							const videos = Array.from(document.querySelectorAll('video'));
+							for (const v of videos) {
+								const rect = v.getBoundingClientRect();
+								if (rect.top >= -200 && rect.bottom <= (window.innerHeight + 200) && rect.height > 100) {
+									const parent = v.closest('[data-e2e="feed-item"], [data-e2e="recommend-list-item-container"], div[class*="DivItemContainer"], [data-e2e="browse-video-container"], section, article') || v.parentElement;
+									const link = parent?.querySelector('a[href*="/video/"], a[href*="/photo/"]') as HTMLAnchorElement | null;
+									if (link && link.href) {
+										return link.href;
+									}
+								}
+							}
+							const firstLink = document.querySelector('a[href*="/video/"], a[href*="/photo/"]') as HTMLAnchorElement | null;
+							return firstLink ? firstLink.href : null;
+						} catch (e) {
+							return null;
+						}
+					}
+				});
+
+				const detectedUrl = results?.[0]?.result;
+				if (detectedUrl) {
+					const data = await fetchTikTokData(detectedUrl);
+					sendResponse({ success: true, data, tabUrl: detectedUrl });
+				} else {
+					sendResponse({ success: false, error: 'Abra um vídeo ou use o botão "Baixar" diretamente na timeline.', tabUrl: activeTab.url });
+				}
 			} catch (e: any) {
-				sendResponse({ success: false, error: e.message, tabUrl: activeTab.url });
+				sendResponse({ success: false, error: 'Clique no botão "Baixar" diretamente no vídeo do TikTok.', tabUrl: activeTab.url });
 			}
 		});
 		return true; // async
