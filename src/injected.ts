@@ -65,21 +65,21 @@
     }
   }
 
-  // Intercept fetch
+  // Intercept fetch safely
   const originalFetch = window.fetch;
   window.fetch = async function(...args: any[]) {
-    const res = await originalFetch.apply(this, args);
+    const res = await (originalFetch as Function).apply(this, args);
     try {
       const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
       if (url.includes('/api/') || url.includes('/item/') || url.includes('/recommend/')) {
         const clone = res.clone();
-        clone.json().then(data => walkObject(data)).catch(() => {});
+        clone.json().then((data: any) => walkObject(data)).catch(() => {});
       }
     } catch (e) {}
     return res;
   };
 
-  // Intercept XHR
+  // Intercept XHR safely
   const originalXhrSend = XMLHttpRequest.prototype.send;
   XMLHttpRequest.prototype.send = function(...args: any[]) {
     this.addEventListener('load', function() {
@@ -90,64 +90,8 @@
         }
       } catch (e) {}
     });
-    return originalXhrSend.apply(this, args as any);
+    return (originalXhrSend as Function).apply(this, args);
   };
-
-  // Listen to requests from content script to resolve React Fiber on clicked element
-  window.addEventListener('message', (e) => {
-    if (e.source !== window || !e.data || e.data.source !== 'TIKFLOW_CONTENT') return;
-
-    if (e.data.type === 'FIND_ELEMENT_DATA') {
-      const { requestId, selector } = e.data;
-      let found: any = null;
-
-      try {
-        const el = selector ? document.querySelector(selector) : null;
-        if (el) {
-          let cur: any = el;
-          while (cur && !found) {
-            for (const key of Object.keys(cur)) {
-              if (key.startsWith('__reactFiber$') || key.startsWith('__reactProps$')) {
-                const props = cur[key];
-                let check = props;
-                for (let i = 0; i < 6 && check; i++) {
-                  if (check.memoizedProps?.itemInfo?.itemStruct) {
-                    found = check.memoizedProps.itemInfo.itemStruct;
-                    break;
-                  }
-                  if (check.memoizedProps?.itemStruct) {
-                    found = check.memoizedProps.itemStruct;
-                    break;
-                  }
-                  if (check.memoizedProps?.item) {
-                    found = check.memoizedProps.item;
-                    break;
-                  }
-                  check = check.return || check.child;
-                }
-              }
-            }
-            cur = cur.parentElement;
-          }
-        }
-      } catch (err) {}
-
-      if (found) {
-        processItem(found);
-      }
-
-      window.postMessage({
-        source: 'TIKFLOW_INJECTED',
-        type: 'FIND_ELEMENT_DATA_RESPONSE',
-        requestId,
-        item: found ? {
-          id: found.id || found.id_str,
-          author: found.author?.uniqueId || found.author?.nickname || 'user',
-          url: `https://www.tiktok.com/@${found.author?.uniqueId || 'user'}/video/${found.id || found.id_str}`
-        } : null
-      }, '*');
-    }
-  });
 
   console.info('[TikFlow] Data interceptor initialized');
 })();
