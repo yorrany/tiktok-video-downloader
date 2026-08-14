@@ -8,6 +8,7 @@ module.exports = {
 		popup: path.join(src, 'popup', 'index.tsx'),
 		background: path.join(src, 'background', 'index.ts'),
 		content: path.join(src, 'content', 'index.ts'),
+		injected: path.join(src, 'injected.ts'),
 	},
 	output: {
 		path: path.join(__dirname, '..', 'dist'),

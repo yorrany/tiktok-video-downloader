@@ -8,6 +8,32 @@ interface TikFlowMedia {
 }
 
 const videoCache = new Map<string, TikFlowMedia>();
+const interceptedItems = new Map<string, any>();
+
+// 1. Inject interceptor
+function injectScript() {
+  try {
+    const s = document.createElement('script');
+    s.src = chrome.runtime.getURL('injected.js');
+    s.onload = () => s.remove();
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+}
+
+// 2. Listen to injected script messages
+window.addEventListener('message', (e) => {
+  if (e.source !== window || !e.data || e.data.source !== 'TIKFLOW_INJECTED') return;
+
+  if (e.data.type === 'ITEM_DATA' && e.data.data) {
+    const item = e.data.data;
+    if (item.id) {
+      interceptedItems.set(item.id, item);
+      if (item.videoUrl) {
+        interceptedItems.set(item.videoUrl, item);
+      }
+    }
+  }
+});
 
 const DOWNLOAD_ICON_SVG = `
 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -62,25 +88,54 @@ function triggerDownload(url: string, filename: string) {
   });
 }
 
+// Multi-method video URL extractor
 function extractVideoUrl(container: HTMLElement): string | null {
   const parent = container.closest('[data-e2e="feed-item"], [data-e2e="recommend-list-item-container"], div[class*="DivItemContainer"], [data-e2e="browse-video-container"], section, article') || container;
   
+  // 1. Direct anchor with /video/ or /photo/
   const link = parent.querySelector('a[href*="/video/"], a[href*="/photo/"]') as HTMLAnchorElement | null;
   if (link && link.href) {
     return link.href;
   }
 
-  const authorLink = parent.querySelector('a[href*="/@"]') as HTMLAnchorElement | null;
-  const videoId = parent.getAttribute('data-id') || parent.id || '';
-  if (authorLink && videoId && /^\d+$/.test(videoId)) {
-    const username = authorLink.href.split('/@')[1]?.split('/')[0]?.split('?')[0];
-    if (username) {
-      return `https://www.tiktok.com/@${username}/video/${videoId}`;
+  // 2. Search anywhere inside parent for /video/ link
+  const allLinks = parent.querySelectorAll('a');
+  for (const a of Array.from(allLinks)) {
+    if (a.href && (a.href.includes('/video/') || a.href.includes('/photo/'))) {
+      return a.href;
     }
   }
 
+  // 3. Search HTML for 18-20 digit ID
+  const html = parent.outerHTML;
+  const matchId = html.match(/video\/(\d{15,25})/i) || 
+                  html.match(/id="[^"]*?(\d{17,22})[^"]*?"/i) ||
+                  html.match(/data-id="(\d{15,25})"/i) ||
+                  html.match(/itemStruct.*?(\d{18,22})/i);
+                  
+  const authorLink = parent.querySelector('a[href*="/@"]') as HTMLAnchorElement | null;
+  const username = authorLink ? authorLink.href.split('/@')[1]?.split('/')[0]?.split('?')[0] : 'user';
+
+  if (matchId && matchId[1]) {
+    return `https://www.tiktok.com/@${username}/video/${matchId[1]}`;
+  }
+
+  // 4. If on video detail page
   if (window.location.href.includes('/video/') || window.location.href.includes('/photo/')) {
     return window.location.href;
+  }
+
+  // 5. Look for any item in interceptedItems matching author
+  for (const [id, item] of interceptedItems.entries()) {
+    if (item.author === username && item.videoUrl) {
+      return item.videoUrl;
+    }
+  }
+
+  // 6. Return first intercepted item if on feed
+  if (interceptedItems.size > 0) {
+    const first = Array.from(interceptedItems.values())[0];
+    if (first && first.videoUrl) return first.videoUrl;
   }
 
   return null;
@@ -95,7 +150,7 @@ function showDownloadMenu(parent: HTMLElement, container: HTMLElement, btn: HTML
 
   const videoUrl = extractVideoUrl(container);
   if (!videoUrl) {
-    showToast('Não foi possível identificar o link deste vídeo.');
+    showToast('Carregando dados do vídeo, tente novamente em um instante.');
     return;
   }
 
@@ -174,7 +229,8 @@ function processFeedItem(feedItem: HTMLElement) {
   const actionContainer = feedItem.querySelector('[data-e2e="feed-action-item"]')?.parentElement ||
                           feedItem.querySelector('[class*="ActionItemContainer"]') ||
                           feedItem.querySelector('[class*="ActionBarWrapper"]') ||
-                          feedItem.querySelector('[data-e2e="browse-action-item"]')?.parentElement;
+                          feedItem.querySelector('[data-e2e="browse-action-item"]')?.parentElement ||
+                          feedItem.querySelector('[class*="DivActionWrapper"]');
 
   if (!actionContainer) {
     return;
@@ -233,14 +289,15 @@ function processVideoPlayer(player: HTMLElement) {
 }
 
 function scanDOM() {
-  const items = document.querySelectorAll('[data-e2e="feed-item"], [data-e2e="recommend-list-item-container"], [class*="DivItemContainer"], [data-e2e="browse-video-container"]');
+  const items = document.querySelectorAll('[data-e2e="feed-item"], [data-e2e="recommend-list-item-container"], [class*="DivItemContainer"], [data-e2e="browse-video-container"], section, article');
   items.forEach((item) => processFeedItem(item as HTMLElement));
 
-  const players = document.querySelectorAll('[data-e2e="browse-video"], [class*="DivVideoPlayerContainer"]');
+  const players = document.querySelectorAll('[data-e2e="browse-video"], [class*="DivVideoPlayerContainer"], div[class*="DivVideoContainer"]');
   players.forEach((player) => processVideoPlayer(player as HTMLElement));
 }
 
 function init() {
+  injectScript();
   scanDOM();
 
   const observer = new MutationObserver(() => {
