@@ -1,19 +1,19 @@
 {
-	"name": "tiktok-video-downloader",
+	"name": "tikflow-downloader",
 	"version": "1.0.0",
-	"description": "Chrome Extension to download TikTok videos without watermark in HD and extract MP3 audio directly from tiktok.com.",
+	"description": "Chrome Extension to download short videos without watermark in HD and extract MP3 audio directly.",
 	"main": "index.js",
 	"scripts": {
 		"build": "webpack --config ./webpack/webpack.prod.js",
 		"start": "webpack --watch --config ./webpack/webpack.dev.js",
-		"package": "(cd dist; zip -r ../tiktok-downloader-v1.0.0.zip ./*)"
+		"package": "(cd dist; zip -r ../tikflow-v1.0.0.zip ./*)"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/yorrany/tiktok-video-downloader.git"
 	},
 	"keywords": [
-		"tiktok",
+		"tikflow",
 		"video",
 		"downloader",
 		"no-watermark",

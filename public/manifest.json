@@ -1,6 +1,6 @@
 {
-	"name": "TikFlow - TikTok Video Downloader (No Watermark)",
-	"description": "Download TikTok videos without watermark in HD and extract MP3 audio directly from TikTok with one click.",
+	"name": "TikFlow - Video & Audio Downloader (No Watermark)",
+	"description": "Download videos without watermark in HD and extract MP3 audio directly with one click.",
 	"version": "1.0.0",
 	"manifest_version": 3,
 	"background": {
@@ -36,7 +36,7 @@
 	],
 	"action": {
 		"default_popup": "popup.html",
-		"default_title": "TikFlow - TikTok Video Downloader",
+		"default_title": "TikFlow",
 		"default_icon": {
 			"16": "/images/icon16.png",
 			"32": "/images/icon32.png",

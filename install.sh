@@ -15,12 +15,12 @@ echo "   | | | | |/ /| |_  | |/ _ \ \ /\ / / "
 echo "   | | | |   < |  _| | | (_) \ V  V /  "
 echo "   |_| |_|_|\_\|_|   |_|\___/ \_/\_/   "
 echo -e "${NC}"
-echo -e "${BOLD}Instalador do TikFlow (TikTok No-Watermark Downloader)${NC}"
+echo -e "${BOLD}Instalador do TikFlow (Video & Audio Downloader)${NC}"
 echo "---------------------------------------------------------"
 
 INSTALL_DIR="$HOME/.local/share/tikflow-downloader"
-ZIP_URL="https://github.com/yorrany/tiktok-video-downloader/releases/latest/download/tiktok-downloader-v1.0.0.zip"
-FALLBACK_ZIP_URL="https://github.com/yorrany/tiktok-video-downloader/raw/main/tiktok-downloader-v1.0.0.zip"
+ZIP_URL="https://github.com/yorrany/tiktok-video-downloader/releases/latest/download/tikflow-v1.0.0.zip"
+FALLBACK_ZIP_URL="https://github.com/yorrany/tiktok-video-downloader/raw/main/tikflow-v1.0.0.zip"
 
 echo -e "\n${YELLOW}▶ Preparando diretório de instalação...${NC}"
 mkdir -p "$INSTALL_DIR"
@@ -71,4 +71,4 @@ if command -v google-chrome &>/dev/null || command -v google-chrome-stable &>/de
     (google-chrome "chrome://extensions" &>/dev/null || google-chrome-stable "chrome://extensions" &>/dev/null) &
 fi
 
-echo -e "${GREEN}${BOLD}Pronto! Agora baixe vídeos do TikTok sem marca d'água livremente!${NC}\n"
+echo -e "${GREEN}${BOLD}Pronto! Aproveite o TikFlow para baixar vídeos sem marca d'água livremente!${NC}\n"

@@ -1,4 +1,4 @@
-interface TikTokMedia {
+interface TikFlowMedia {
   id: string;
   title: string;
   author: string;
@@ -7,7 +7,7 @@ interface TikTokMedia {
   audio: string;
 }
 
-const videoCache = new Map<string, TikTokMedia>();
+const videoCache = new Map<string, TikFlowMedia>();
 
 const DOWNLOAD_ICON_SVG = `
 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -63,7 +63,6 @@ function triggerDownload(url: string, filename: string) {
 }
 
 function extractVideoUrl(container: HTMLElement): string | null {
-  // Check direct video / photo link inside container or its parent feed item
   const parent = container.closest('[data-e2e="feed-item"], [data-e2e="recommend-list-item-container"], div[class*="DivItemContainer"], [data-e2e="browse-video-container"], section, article') || container;
   
   const link = parent.querySelector('a[href*="/video/"], a[href*="/photo/"]') as HTMLAnchorElement | null;
@@ -71,7 +70,6 @@ function extractVideoUrl(container: HTMLElement): string | null {
     return link.href;
   }
 
-  // Check author link + video id in attributes
   const authorLink = parent.querySelector('a[href*="/@"]') as HTMLAnchorElement | null;
   const videoId = parent.getAttribute('data-id') || parent.id || '';
   if (authorLink && videoId && /^\d+$/.test(videoId)) {
@@ -81,7 +79,6 @@ function extractVideoUrl(container: HTMLElement): string | null {
     }
   }
 
-  // If on a status/video page
   if (window.location.href.includes('/video/') || window.location.href.includes('/photo/')) {
     return window.location.href;
   }
@@ -107,7 +104,7 @@ function showDownloadMenu(parent: HTMLElement, container: HTMLElement, btn: HTML
   btn.innerHTML = SPINNER_SVG;
 
   chrome.runtime.sendMessage({
-    type: 'FETCH_TIKTOK_DATA',
+    type: 'FETCH_TIKFLOW_DATA',
     url: videoUrl
   }, (res) => {
     btn.classList.remove('tikflow-spinning');
@@ -118,7 +115,7 @@ function showDownloadMenu(parent: HTMLElement, container: HTMLElement, btn: HTML
       return;
     }
 
-    const data: TikTokMedia = res.data;
+    const data: TikFlowMedia = res.data;
     videoCache.set(videoUrl, data);
 
     const menu = document.createElement('div');
@@ -132,7 +129,7 @@ function showDownloadMenu(parent: HTMLElement, container: HTMLElement, btn: HTML
     videoBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       menu.remove();
-      const filename = `tiktok_${data.author}_${data.id || Date.now()}_no_watermark.mp4`.replace(/[^\w\.-]/g, '_');
+      const filename = `tikflow_${data.author}_${data.id || Date.now()}_no_watermark.mp4`.replace(/[^\w\.-]/g, '_');
       triggerDownload(data.videoHd || data.videoNoWatermark, filename);
       showToast('Baixando vídeo sem marca d\'água...');
     });
@@ -149,7 +146,7 @@ function showDownloadMenu(parent: HTMLElement, container: HTMLElement, btn: HTML
         showToast('Áudio não disponível separadamente.');
         return;
       }
-      const filename = `tiktok_audio_${data.author}_${data.id || Date.now()}.mp3`.replace(/[^\w\.-]/g, '_');
+      const filename = `tikflow_audio_${data.author}_${data.id || Date.now()}.mp3`.replace(/[^\w\.-]/g, '_');
       triggerDownload(data.audio, filename);
       showToast('Baixando áudio MP3...');
     });
@@ -174,7 +171,6 @@ function processFeedItem(feedItem: HTMLElement) {
     return;
   }
 
-  // Find action container (the right column with Like, Comment, Share)
   const actionContainer = feedItem.querySelector('[data-e2e="feed-action-item"]')?.parentElement ||
                           feedItem.querySelector('[class*="ActionItemContainer"]') ||
                           feedItem.querySelector('[class*="ActionBarWrapper"]') ||
@@ -190,7 +186,7 @@ function processFeedItem(feedItem: HTMLElement) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'tikflow-action-btn';
-  btn.setAttribute('aria-label', 'Baixar TikTok sem marca');
+  btn.setAttribute('aria-label', 'Baixar sem marca d\'água');
   btn.setAttribute('title', 'Baixar Vídeo Sem Marca d\'Água');
   btn.innerHTML = DOWNLOAD_ICON_SVG;
 

@@ -1,7 +1,7 @@
 # TikFlow 🎵🚀
-### TikTok Video Downloader (No Watermark) & MP3 Extractor
+### Video & Audio Downloader (No Watermark)
 
-**TikFlow** é uma extensão para Google Chrome moderna, rápida e sem anúncios para baixar vídeos do **TikTok sem marca d'água** em alta definição (HD) e extrair o áudio original em MP3 com 1 clique.
+**TikFlow** é uma extensão para Google Chrome moderna, rápida e sem anúncios para baixar vídeos em alta definição (HD) **sem marca d'água** e extrair o áudio original em MP3 com 1 clique.
 
 ---
 
@@ -17,8 +17,8 @@ curl -fsSL https://raw.githubusercontent.com/yorrany/tiktok-video-downloader/mai
 
 ## 📦 Instalação Manual
 
-1. **Baixe o `.zip` da extensão**:
-   - [📥 **Download tiktok-downloader-v1.0.0.zip**](https://github.com/yorrany/tiktok-video-downloader/releases/latest/download/tiktok-downloader-v1.0.0.zip)
+1. **Baixe o pacote da extensão**:
+   - [📥 **Download tikflow-v1.0.0.zip**](https://github.com/yorrany/tiktok-video-downloader/releases/latest/download/tikflow-v1.0.0.zip)
 
 2. **Extraia o arquivo `.zip`** em uma pasta no seu computador.
 
@@ -30,10 +30,10 @@ curl -fsSL https://raw.githubusercontent.com/yorrany/tiktok-video-downloader/mai
 
 ---
 
-## ✨ Recursos
+## ✨ Principais Recursos
 
-- 🚫 **100% Sem Marca d'Água**: Remove completamente a marca d'água do TikTok.
-- 📥 **Botão Nativo na Barra Lateral**: Um botão "Baixar" é adicionado automaticamente na coluna de ações de cada vídeo do feed.
+- 🚫 **100% Sem Marca d'Água**: Download do arquivo original limpo em alta definição.
+- 📥 **Botão Nativo no Feed**: Atalho "Baixar" adicionado diretamente na coluna de ações de cada post.
 - 🎯 **Botão Flutuante no Player**: Botão direto sobre o vídeo.
 - 🎵 **Download de Áudio (MP3)**: Extraia e baixe apenas a faixa de áudio/música original.
 - 🧩 **Menu Popup Completo**: Pré-visualização com capa, autor, título e campo para colar qualquer link.

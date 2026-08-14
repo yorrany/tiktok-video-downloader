@@ -1,12 +1,12 @@
 import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import { TikTokMediaData } from '../background';
+import { TikFlowMediaData } from '../background';
 import './popup.css';
 
 render(<App />, document.getElementById('root')!);
 
 function App() {
-	const [mediaData, setMediaData] = useState<TikTokMediaData | null>(null);
+	const [mediaData, setMediaData] = useState<TikFlowMediaData | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [inputUrl, setInputUrl] = useState<string>('');
@@ -15,7 +15,7 @@ function App() {
 		setLoading(true);
 		setError(null);
 		chrome.runtime.sendMessage({
-			type: 'FETCH_TIKTOK_DATA',
+			type: 'FETCH_TIKFLOW_DATA',
 			url: url
 		}, (res) => {
 			setLoading(false);
@@ -28,7 +28,7 @@ function App() {
 	};
 
 	useEffect(() => {
-		chrome.runtime.sendMessage({ type: 'GET_CURRENT_TAB_TIKTOK' }, (res) => {
+		chrome.runtime.sendMessage({ type: 'GET_CURRENT_TAB_TIKFLOW' }, (res) => {
 			setLoading(false);
 			if (res && res.success && res.data) {
 				setMediaData(res.data);
@@ -41,7 +41,7 @@ function App() {
 
 	const handleDownloadVideo = () => {
 		if (!mediaData) return;
-		const filename = `tiktok_${mediaData.author}_${mediaData.id || Date.now()}_no_watermark.mp4`.replace(/[^\w\.-]/g, '_');
+		const filename = `tikflow_${mediaData.author}_${mediaData.id || Date.now()}_no_watermark.mp4`.replace(/[^\w\.-]/g, '_');
 		chrome.runtime.sendMessage({
 			type: 'DOWNLOAD_MEDIA',
 			url: mediaData.videoHd || mediaData.videoNoWatermark,
@@ -51,7 +51,7 @@ function App() {
 
 	const handleDownloadAudio = () => {
 		if (!mediaData || !mediaData.audio) return;
-		const filename = `tiktok_audio_${mediaData.author}_${mediaData.id || Date.now()}.mp3`.replace(/[^\w\.-]/g, '_');
+		const filename = `tikflow_audio_${mediaData.author}_${mediaData.id || Date.now()}.mp3`.replace(/[^\w\.-]/g, '_');
 		chrome.runtime.sendMessage({
 			type: 'DOWNLOAD_MEDIA',
 			url: mediaData.audio,
@@ -75,7 +75,7 @@ function App() {
 				<input
 					type="text"
 					className="tf-input"
-					placeholder="Cole o link do TikTok..."
+					placeholder="Cole o link do vídeo..."
 					value={inputUrl}
 					onInput={(e) => setInputUrl((e.target as HTMLInputElement).value)}
 					onKeyDown={(e) => {
@@ -110,7 +110,7 @@ function App() {
 				{!loading && !mediaData && !error && (
 					<div className="tf-state">
 						<p>Nenhum vídeo carregado no momento.</p>
-						<small>Abra um vídeo no TikTok ou cole o link acima.</small>
+						<small>Abra um vídeo ou cole o link acima.</small>
 					</div>
 				)}
 
@@ -149,7 +149,7 @@ function App() {
 			</main>
 
 			<footer className="tf-footer">
-				<span>Dica: Use também o botão "Baixar" nos vídeos do TikTok</span>
+				<span>Dica: Use também o botão "Baixar" diretamente nos vídeos</span>
 			</footer>
 		</div>
 	);
