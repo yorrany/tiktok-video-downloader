@@ -1,0 +1,176 @@
+/* TikFlow - TikTok In-Page Download Button Styles */
+
+.tikflow-btn-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 12px !important;
+  position: relative !important;
+  user-select: none !important;
+  cursor: pointer !important;
+}
+
+.tikflow-action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  padding: 0 !important;
+}
+
+.tikflow-action-btn:hover {
+  background-color: #25f4ee !important;
+  color: #000000 !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 0 16px rgba(37, 244, 238, 0.6) !important;
+  border-color: #25f4ee !important;
+}
+
+.tikflow-action-btn svg {
+  width: 22px !important;
+  height: 22px !important;
+  fill: currentColor !important;
+  pointer-events: none !important;
+}
+
+.tikflow-btn-label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-top: 4px !important;
+  font-family: "TikTokFont", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+  pointer-events: none !important;
+}
+
+/* Floating overlay button directly on video player */
+.tikflow-floating-btn {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 244, 238, 0.4) !important;
+  border-radius: 9999px !important;
+  padding: 8px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.2s ease !important;
+}
+
+.tikflow-floating-btn:hover {
+  background: linear-gradient(135deg, #25f4ee 0%, #fe2c55 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 0 20px rgba(254, 44, 85, 0.6) !important;
+}
+
+.tikflow-floating-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  fill: currentColor !important;
+}
+
+/* Dropdown Menu */
+.tikflow-menu {
+  position: absolute !important;
+  bottom: calc(100% + 12px) !important;
+  right: 0 !important;
+  background-color: #121212 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 14px !important;
+  padding: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  min-width: 220px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.3) !important;
+  z-index: 999999 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  animation: tikflow-pop 0.2s ease !important;
+}
+
+@keyframes tikflow-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tikflow-menu-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  text-align: left !important;
+}
+
+.tikflow-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #25f4ee !important;
+}
+
+.tikflow-menu-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  fill: currentColor !important;
+  flex-shrink: 0 !important;
+}
+
+/* Spinner */
+.tikflow-spinning svg {
+  animation: tikflow-spin 0.8s linear infinite !important;
+}
+
+@keyframes tikflow-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Toast */
+.tikflow-toast {
+  position: fixed !important;
+  bottom: 32px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: linear-gradient(135deg, #121212 0%, #25f4ee 100%) !important;
+  color: #ffffff !important;
+  padding: 12px 24px !important;
+  border-radius: 30px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(37, 244, 238, 0.4) !important;
+  z-index: 9999999 !important;
+  animation: tikflow-fadein 0.3s ease !important;
+}
+
+@keyframes tikflow-fadein {
+  from { opacity: 0; transform: translate(-50%, 15px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
